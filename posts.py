@@ -1,6 +1,9 @@
 import os
 import praw
+import yfinance as yf
+import pandas as pd
 from dotenv import load_dotenv
+from analysis import analyze_sentiment
 
 load_dotenv()
 
@@ -18,11 +21,19 @@ reddit = praw.Reddit(
     username=REDDIT_USERNAME,
 )
 
-# List of subreddits to search for submissions in
-subreddits_names = ["Investing", "Stocks", "StockMarket", "WallStreetBets"]
+def search_ticker(ticker):
+    # List of subreddits to search for submissions in
+    subreddits_names = ["Investing", "Stocks", "StockMarket", "WallStreetBets"]
+    submission_list = []
 
-with open("posts.txt", "w", encoding="utf-8") as txtfile:
-    for subreddit in subreddits_names:
-        s = reddit.subreddit(subreddit)
-        for submission in s.new(limit=100):
-            txtfile.write(submission.title + "\n")
+    for subreddit_name in subreddits_names:
+        for submission in reddit.subreddit(subreddit_name).search(ticker, sort="new"):
+            company = yf.Ticker(ticker).info["shortName"]
+            if ticker in submission.title or company in submission.title:
+                submission_list.append(submission.title)
+
+    submission_dict = pd.DataFrame(submission_list, columns=["title"]).to_dict()
+
+    return analyze_sentiment(submission_dict)
+
+
