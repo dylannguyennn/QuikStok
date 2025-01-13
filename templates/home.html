@@ -4,15 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuikStok</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
 </head>
-<body>
-    <!-- Create a search bar in the middle, with a button to search for a stock ticker, which will submit the ticker to a backend.  -->
-    <div>
-        <h1>QuikStok</h1>
-        <form action="/submit" method="POST">
-            <input type="text" name="ticker" placeholder="Enter a stock ticker">
-            <button type="submit">Search</button>
-        </form>
+<body class="bg-gray-50 min-h-screen flex items-center">
+    <div class="max-w-2xl mx-auto w-full fade-in">
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">QuikStok</h1>
+                <p class="text-gray-600">Your quick stock analysis tool</p>
+            </div>
+            
+            <form action="/submit" method="POST" class="space-y-4">
+                <div>
+                    <input 
+                        type="text" 
+                        name="ticker" 
+                        placeholder="Enter stock ticker (e.g., AAPL)"
+                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                        required
+                    >
+                </div>
+                <button 
+                    type="submit"
+                    class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all"
+                >
+                    Analyze Stock
+                </button>
+            </form>
+        </div>
     </div>
 </body>
 </html>
