@@ -3,52 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuikStok</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-    </style>
+    <title>Stock Information</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/transitions.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center">
-    <div class="max-w-2xl mx-auto w-full fade-in">
-        <div class="bg-white rounded-xl shadow-lg p-8">
-            <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-gray-800 mb-2">QuikStok</h1>
-            </div>
-            
-            <form action="/submit" method="POST" class="space-y-4">
-                <div>
-                    <input 
-                        type="text" 
-                        name="ticker" 
-                        placeholder="Enter stock ticker (e.g., AAPL)"
-                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                        required
-                    >
-                </div>
-                <div class="flex gap-4">
-                    <button 
-                        type="submit"
-                        class="w-1/2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all"
-                    >
-                        Analyze Stock
-                    </button>
-                    <button 
-                        type="button"
-                        onclick="getinfo()"
-                        class="w-1/2 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-200 transition-all"
-                    >
-                        Get Info
-                    </button>
-                </div>
-            </form>
-        </div>
+<body>
+    <div class="search-container" id="main-container">
+    <div class="search-box">
+        <form action="/info" method="POST" id="searchForm" onsubmit="startTransition(event)">
+            <input type="text" class="search-input" name="ticker" placeholder="Enter stock ticker..." required>
+            <button type="submit" formaction="/analyze" class="icon-btn" title="Analyze">
+                <i class="fas fa-chart-line"></i>
+            </button>
+            <button type="submit" formaction="/info" class="icon-btn" title="Get Info">
+                <i class="fas fa-info-circle"></i>
+            </button>
+        </form>
     </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/transitions.js') }}"></script>
 </body>
 </html>
