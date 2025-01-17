@@ -20,7 +20,6 @@
         <div class="bg-white rounded-xl shadow-lg p-8">
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-gray-800 mb-2">QuikStok</h1>
-                <p class="text-gray-600">Your quick stock analysis tool</p>
             </div>
             
             <form action="/submit" method="POST" class="space-y-4">
@@ -33,12 +32,21 @@
                         required
                     >
                 </div>
-                <button 
-                    type="submit"
-                    class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all"
-                >
-                    Analyze Stock
-                </button>
+                <div class="flex gap-4">
+                    <button 
+                        type="submit"
+                        class="w-1/2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all"
+                    >
+                        Analyze Stock
+                    </button>
+                    <button 
+                        type="button"
+                        onclick="getinfo()"
+                        class="w-1/2 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-200 transition-all"
+                    >
+                        Get Info
+                    </button>
+                </div>
             </form>
         </div>
     </div>
