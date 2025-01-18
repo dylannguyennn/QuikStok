@@ -1,9 +1,11 @@
 import os
+import re
 import praw
 import yfinance as yf
 import pandas as pd
 from dotenv import load_dotenv
 from analysis import analyze_sentiment
+from datetime import datetime
 
 load_dotenv()
 
@@ -21,19 +23,28 @@ reddit = praw.Reddit(
     username=REDDIT_USERNAME,
 )
 
+def process_ticker(ticker):
+    to_shorten = ["Corporation", "Inc.", "Inc", "Corp", "Co", "Co.", "Corp.", "International", "Incorporated", "Company"]
+    company = yf.Ticker(ticker).info["shortName"]
+    company = company.replace(".", "").replace(",", "").split(" ")
+    company = " ".join([i for i in company if i not in to_shorten])
+    print(company)
+    return company
+
 def search_ticker(ticker):
     # List of subreddits to search for submissions in
-    subreddits_names = ["Investing", "Stocks", "StockMarket", "WallStreetBets"]
+    subreddits_names = ["Investing", "Stocks", "StockMarket", "WallStreetBets", "ThetaGang", "Dividends", "Options"]
     submission_list = []
 
     for subreddit_name in subreddits_names:
-        for submission in reddit.subreddit(subreddit_name).search(ticker, sort="new"):
-            company = yf.Ticker(ticker).info["shortName"]
+        for submission in reddit.subreddit(subreddit_name).search(ticker, sort="new", time_filter="month"):
+            company = process_ticker(ticker)
             if ticker in submission.title or company in submission.title:
-                submission_list.append(submission.title)
+                submission_list.append([submission.title])
 
-    submission_dict = pd.DataFrame(submission_list, columns=["title"]).to_dict()
+    # submission_dict = pd.DataFrame(submission_list, columns=["title"]).to_dict()
 
-    return analyze_sentiment(submission_dict)
+    # return analyze_sentiment(submission_dict)
+    return submission_list
 
-
+# ADD SEARCHING FOR TICKER/COMPANY WITHIN SUBMISSION DESCRIPTION

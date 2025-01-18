@@ -1,3 +1,4 @@
 .env
+/.venv/
 posts.txt
 sentiment_analysis.csv

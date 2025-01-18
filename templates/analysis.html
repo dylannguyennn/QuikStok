@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/transitions.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
+<style>
+    .test {
+        color: white;
+    }
+</style>
 <body style="background-color: #212121;">
+    <h1 class="test">{{ symbol }} Count: {{ count }}</h1>
 </body>
 </html>

@@ -12,14 +12,14 @@
 <body style="background-color: #212121;">
     <div class="search-container" id="main-container">
     <div class="search-box">
-        <form action="/info" method="POST" id="searchForm" onsubmit="startTransition(event)" class="search-form">
+        <form method="POST" id="searchForm" onsubmit="startTransition(event)" class="search-form">
             <div class="input-group">
                 <input type="text" class="search-input" name="ticker" placeholder="Enter stock ticker..." required>
                 <div class="button-group">
-                    <button type="submit" formaction="/analyze" class="icon-btn" title="Analyze">
+                    <button type="submit" formaction="/analyze_stock" class="icon-btn" title="Analyze">
                         <i class="fas fa-chart-line"></i>
                     </button>
-                    <button type="submit" formaction="/info" class="icon-btn" title="Get Info">
+                    <button type="submit" formaction="/info_stock" class="icon-btn" title="Get Info">
                         <i class="fas fa-info-circle"></i>
                     </button>
                 </div>

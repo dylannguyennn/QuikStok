@@ -3,8 +3,15 @@ function startTransition(event) {
     const container = document.getElementById('main-container');
     container.classList.add('fade-out');
     
+    // Get the clicked button's formaction
+    const clickedButton = event.submitter;
+    const form = event.target;
+    if (clickedButton && clickedButton.formAction) {
+        form.action = clickedButton.formAction;
+    }
+    
     setTimeout(() => {
-        event.target.submit();
+        form.submit();
     }, 500);
 }
 
