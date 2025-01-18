@@ -13,9 +13,11 @@
             max-width: 800px;
             margin: 50px auto;
             padding: 20px;
+            color: #ececec;
         }
         .stock-header {
             margin-bottom: 30px;
+            color: #ececec;
         }
         .stock-metrics {
             display: grid;
@@ -26,23 +28,27 @@
         .metric-card {
             padding: 20px;
             border-radius: 10px;
-            background: #f8f9fa;
+            background: #171717;
             text-align: center;
         }
         .metric-value {
             font-size: 1.5rem;
             font-weight: bold;
             margin: 10px 0;
+            color: #ececec;
+        }
+        .metric-label {
+            color: #ececec;
         }
         .back-btn {
             margin-top: 30px;
         }
     </style>
 </head>
-<body>
+<body style="background-color: #212121;">
     <div class="stock-container fade-in">
         <div class="stock-header fade-in">
-            <h1>{{ name }} <small class="text-muted">({{ symbol }})</small></h1>
+            <h1>{{ name }} <small color="#ececec">({{ symbol }})</small></h1>
             <h2 class="text-primary">${{ price }}</h2>
         </div>
 
