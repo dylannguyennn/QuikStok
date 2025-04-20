@@ -12,14 +12,14 @@
 <body style="background-color: #212121;">
     <div class="search-container" id="main-container">
     <div class="search-box">
-        <form method="POST" id="searchForm" onsubmit="startTransition(event)" class="search-form">
+        <form id="searchForm" class="search-form">
             <div class="input-group">
-                <input type="text" class="search-input" name="ticker" placeholder="Enter stock ticker..." required>
+                <input type="text" class="search-input" name="ticker" id="stock_ticker_input" placeholder="Enter stock ticker..." required>
                 <div class="button-group">
-                    <button type="submit" formaction="/analyze_stock" class="icon-btn" title="Analyze">
+                    <button type="button" class="icon-btn" id="analyze_stock_btn" title="Analyze">
                         <i class="fas fa-chart-line"></i>
                     </button>
-                    <button type="submit" formaction="/info_stock" class="icon-btn" title="Get Info">
+                    <button type="button" class="icon-btn" id="info_stock_btn" title="Get Info">
                         <i class="fas fa-info-circle"></i>
                     </button>
                 </div>
@@ -28,5 +28,6 @@
     </div>
     </div>
     <script src="{{ url_for('static', filename='js/transitions.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/events.js') }}"></script>
 </body>
 </html>

@@ -1,26 +1,25 @@
 import pandas as pd
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from transformers import pipeline
 
-VADER_analyzer = SentimentIntensityAnalyzer()
+sentiment_pipeline = pipeline(
+    "sentiment-analysis",
+    model="fin_roberta",
+    tokenizer="fin_roberta",
+    device=0
+)
 
-def analyze_sentiment(submission_dict):
-    sentiment_dict = {
-        "submission": [],
-        "sentiment_score_pos": [],
-        "sentiment_score_neg": [],
-        "sentiment_score_neu": [],
-        "sentiment_score_compound": []
-    }
+def analyze_sentiment(submissions_list: list) -> pd.DataFrame:
+    records = []
 
-    for submission in submission_dict["title"].values():
-        sentiment_score = VADER_analyzer.polarity_scores(submission)
-        sentiment_dict["submission"].append(submission)
-        sentiment_dict["sentiment_score_pos"].append(sentiment_score["pos"])
-        sentiment_dict["sentiment_score_neg"].append(sentiment_score["neg"])
-        sentiment_dict["sentiment_score_neu"].append(sentiment_score["neu"])
-        sentiment_dict["sentiment_score_compound"].append(sentiment_score["compound"])
+    for text in submissions_list:
+        out = sentiment_pipeline(text[:512])[0]
+        records.append({
+            "title": text,
+            "label": out["label"],
+            "score": round(out["score"], 3),
+        })
 
-    sentiment_dict_df = pd.DataFrame(sentiment_dict)
-    sentiment_dict_df.to_csv("sentiment_analysis.csv")
-    return sentiment_dict
+    df = pd.DataFrame(records)
+    df.to_csv("sentiment_analysis.csv", index=False)
+    return df
 

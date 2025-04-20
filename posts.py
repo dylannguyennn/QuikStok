@@ -3,11 +3,11 @@ import re
 import praw
 import yfinance as yf
 import pandas as pd
-from dotenv import load_dotenv
 from analysis import analyze_sentiment
-from datetime import datetime
-
-load_dotenv()
+from datetime import datetime, timedelta
+from app import db
+from models import Post
+from sqlalchemy import func
 
 PRAW_CLIENT_ID = os.getenv("PRAW_CLIENT_ID")
 PRAW_CLIENT_SECRET = os.getenv("PRAW_CLIENT_SECRET")
@@ -28,23 +28,55 @@ def process_ticker(ticker):
     company = yf.Ticker(ticker).info["shortName"]
     company = company.replace(".", "").replace(",", "").split(" ")
     company = " ".join([i for i in company if i not in to_shorten])
-    print(company)
     return company
 
-def search_ticker(ticker):
+def search_ticker_reddit(ticker, site='reddit'):
+    # Retrieve most recent post/record's date from DB
+    last_post_date: datetime = (db.session
+                                .query(func.max(Post.post_date))
+                                .filter(Post.ticker == ticker)
+                                .scalar())
+    
+    if not last_post_date:
+        last_post_date = datetime.now() - timedelta(days=30)
+
     # List of subreddits to search for submissions in
-    subreddits_names = ["Investing", "Stocks", "StockMarket", "WallStreetBets", "ThetaGang", "Dividends", "Options"]
-    submission_list = []
+    subreddit_names = ["Investing", "Stocks", "StockMarket", "WallStreetBets", "ThetaGang", "Dividends", "Options"]
+    submissions_list = []
+    company = process_ticker(ticker)
+    keywords = [company, ticker]
 
-    for subreddit_name in subreddits_names:
-        for submission in reddit.subreddit(subreddit_name).search(ticker, sort="new", time_filter="month"):
-            company = process_ticker(ticker)
-            if ticker in submission.title or company in submission.title:
-                submission_list.append([submission.title])
+    # Search for submissions containing ticker or company name
+    # Stop searching if post_date is older than last_post_date
+    for submission in reddit.subreddit('+'.join(subreddit_names)).search(keywords, sort="new", time_filter="month"):
+        post_date = datetime.fromtimestamp(submission.created_utc)
 
-    # submission_dict = pd.DataFrame(submission_list, columns=["title"]).to_dict()
+        if post_date <= last_post_date:
+            break
+        if ticker in submission.title or company in submission.title:
+            submissions_list.append([submission.title, post_date])
 
-    # return analyze_sentiment(submission_dict)
-    return submission_list
+    # Run new submissions through pipeline
+    texts, dates = zip(*submissions_list) if submissions_list else ([], [])
+    sentiment_df = analyze_sentiment(list(texts))
+
+    # Add new submussions to database
+    records = sentiment_df.to_dict('records')
+    submissions_db = []
+    for rec, txt, dt in zip(records, texts, dates):
+        submissions_db.append(
+            Post(
+                ticker=ticker,
+                text=txt, 
+                site=site,
+                label=rec['label'],
+                score=rec['score'],
+                post_date=dt
+            )
+        )
+
+    if submissions_db:
+        db.session.bulk_save_objects(submissions_db)
+        db.session.commit()    
 
 # ADD SEARCHING FOR TICKER/COMPANY WITHIN SUBMISSION DESCRIPTION

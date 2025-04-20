@@ -15,6 +15,31 @@
     }
 </style>
 <body style="background-color: #212121;">
-    <h1 class="test">{{ symbol }} Count: {{ count }}</h1>
+    <h1 class="test">{{ symbol }} Posts Retrieved:</h1>
+
+    <table class="test">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Post</th>
+                <th>Label</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in sentiment_rows %}
+                <tr>
+                    <td>{{ row.post_date.strftime('%Y‑%m‑%d %H:%M') }}</td>
+                    <td>{{ row.title }}</td>
+                    <td>{{ row.label }}</td>
+                    <td>{{ '%.3f'|format(row.score) }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                  <td colspan="4">No posts to display.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
