@@ -16,6 +16,14 @@ migrate = Migrate(app, db)
 from posts import search_ticker_reddit 
 from models import Post
 
+def score_label(label: str, score: float) -> float:
+    if label == "POSITIVE":
+        return score
+    elif label == "NEGATIVE":
+        return -score
+    else:
+        return 0.0
+    
 @app.route('/', methods=['GET', 'POST'])
 def home():
     return render_template('home.html')
@@ -31,7 +39,7 @@ def analyze_stock(ticker):
     timeframe = datetime.now() - timedelta(days=30)
     recent = (Post.query
             .filter(Post.ticker == ticker,
-                      Post.post_date >= timeframe)
+                    Post.post_date >= timeframe)
             .all())
     
     sentiment_data = []
@@ -43,9 +51,33 @@ def analyze_stock(ticker):
             'score': post.score
         })
 
+    scores = [score_label(r["label"], r["score"]) for r in sentiment_data]
+    if scores:
+        mean_sentiment = sum(scores) / len(scores)
+    else:
+        mean_sentiment = 0.0
+    index_0_100 = round((mean_sentiment + 1) * 50)
+
+    # Buckets
+    if index_0_100 < 20:
+        bucket = "Very Bearish"
+    elif index_0_100 < 40:
+        bucket = "Bearish"
+    elif index_0_100 < 60:
+        bucket = "Neutral"
+    elif index_0_100 < 80:
+        bucket = "Bullish"
+    else:
+        bucket = "Very Bullish"
+
+    print(mean_sentiment)
+    print(bucket)
+
     return render_template('analysis.html',
         symbol = ticker ,
-        sentiment_rows = sentiment_data                  
+        sentiment_rows = sentiment_data,
+        sentiment_index = index_0_100,
+        sentiment_label = bucket               
     )
 
 

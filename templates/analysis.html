@@ -15,8 +15,21 @@
     }
 </style>
 <body style="background-color: #212121;">
-    <h1 class="test">{{ symbol }} Posts Retrieved:</h1>
 
+    <h1 class="test">{{ symbol }} General Sentiment</h1>
+    <span class="test" style="font-weight:bold;">{{ sentiment_index }} / 100</span>
+    <div class="progress-container">
+        <div
+          class="progress-bar {{ sentiment_label|lower|replace(' ', '-') }}"
+          style="width: {{ sentiment_index }}%;"
+          role="progressbar"
+          aria-valuenow="{{ sentiment_index }}"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        ></div>
+    </div>
+
+    <h1 class="test">{{ symbol }} Posts Retrieved:</h1>
     <table class="test">
         <thead>
             <tr>
@@ -41,5 +54,6 @@
             {% endfor %}
         </tbody>
     </table>
+    
 </body>
 </html>
