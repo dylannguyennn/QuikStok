@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from datetime import datetime, timedelta 
 import yfinance as yf
 import os
+import asyncio
 
 app = Flask(__name__)
 
@@ -33,7 +34,8 @@ def analyze_stock(ticker):
     # Search for new submissions containing ticker/company name 
     # and add them to the database if they are newer than most recent record
     ticker = ticker.strip().upper() 
-    search_ticker_reddit(ticker)
+    # search_ticker_reddit(ticker)
+    asyncio.run(search_ticker_reddit(ticker))
 
     # Retrieve all posts from DB within timeframe
     timeframe = datetime.now() - timedelta(days=30)

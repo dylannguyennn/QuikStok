@@ -1,6 +1,7 @@
 import os
-import re
 import praw
+import asyncpraw
+import asyncio
 import yfinance as yf
 import pandas as pd
 from analysis import analyze_sentiment
@@ -8,6 +9,9 @@ from datetime import datetime, timedelta
 from app import db
 from models import Post
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.dialects.postgresql import insert
+
 
 PRAW_CLIENT_ID = os.getenv("PRAW_CLIENT_ID")
 PRAW_CLIENT_SECRET = os.getenv("PRAW_CLIENT_SECRET")
@@ -15,13 +19,35 @@ PRAW_USER_AGENT = os.getenv("PRAW_USER_AGENT")
 REDDIT_USERNAME = os.getenv("REDDIT_USERNAME")
 REDDIT_PASSWORD = os.getenv("REDDIT_PASSWORD")
 
-reddit = praw.Reddit(
-    client_id=PRAW_CLIENT_ID,
-    client_secret=PRAW_CLIENT_SECRET,
-    password=REDDIT_PASSWORD,
-    user_agent=PRAW_USER_AGENT,
-    username=REDDIT_USERNAME,
-)
+async def fetch_submissions(reddit, subreddit_names, submissions_list, ticker, company, last_post_date):
+    # Search for submissions containing ticker or company name
+    # Stop searching if post_date is older than last_post_date
+    print("Beginning submission processing...")
+    keywords = [ticker, company]
+    subreddit = await reddit.subreddit('+'.join(subreddit_names))
+    async for submission in subreddit.search(query=keywords, sort="new", time_filter="month", limit=None):
+        post_date = datetime.fromtimestamp(submission.created_utc)
+
+        if post_date <= last_post_date:
+            break
+        if ticker in submission.title or company in submission.title:
+            submissions_list.append([submission.title, post_date, "submission_title"])
+        if ticker in submission.selftext or company in submission.selftext:
+            submissions_list.append([submission.selftext, post_date, "submission_selftext"])
+    print("Submission processing finished.")
+
+async def fetch_comments(reddit, subreddit_names, submissions_list, ticker, company, last_post_date):
+    print("Beginning comment processing...")
+    subreddit = await reddit.subreddit('+'.join(subreddit_names))
+    async for comment in subreddit.comments(limit=500):
+        comment_date = datetime.fromtimestamp(comment.created_utc)
+
+        if comment_date <= last_post_date:
+            break
+        if ticker in comment.body or company in comment.body:
+            submissions_list.append([comment.body, comment_date, "comment"])
+    print("Finished comment processing...")
+
 
 def process_ticker(ticker):
     to_shorten = ["Corporation", "Inc.", "Inc", "Corp", "Co", "Co.", "Corp.", "International", "Incorporated", "Company"]
@@ -30,7 +56,15 @@ def process_ticker(ticker):
     company = " ".join([i for i in company if i not in to_shorten])
     return company
 
-def search_ticker_reddit(ticker, site='reddit'):
+async def search_ticker_reddit(ticker, site='reddit'):
+    reddit = asyncpraw.Reddit(
+        client_id=PRAW_CLIENT_ID,
+        client_secret=PRAW_CLIENT_SECRET,
+        password=REDDIT_PASSWORD,
+        user_agent=PRAW_USER_AGENT,
+        username=REDDIT_USERNAME,
+    )
+
     # Retrieve most recent post/record's date from DB
     last_post_date: datetime = (db.session
                                 .query(func.max(Post.post_date))
@@ -44,39 +78,46 @@ def search_ticker_reddit(ticker, site='reddit'):
     subreddit_names = ["Investing", "Stocks", "StockMarket", "WallStreetBets", "ThetaGang", "Dividends", "Options"]
     submissions_list = []
     company = process_ticker(ticker)
-    keywords = [company, ticker]
 
-    # Search for submissions containing ticker or company name
-    # Stop searching if post_date is older than last_post_date
-    for submission in reddit.subreddit('+'.join(subreddit_names)).search(keywords, sort="new", time_filter="month"):
-        post_date = datetime.fromtimestamp(submission.created_utc)
-
-        if post_date <= last_post_date:
-            break
-        if ticker in submission.title or company in submission.title:
-            submissions_list.append([submission.title, post_date])
+    await asyncio.gather(
+        fetch_submissions(reddit, subreddit_names, submissions_list, ticker, company, last_post_date),
+        fetch_comments(reddit, subreddit_names, submissions_list, ticker, company, last_post_date)
+    )
 
     # Run new submissions through pipeline
-    texts, dates = zip(*submissions_list) if submissions_list else ([], [])
+    texts, dates, types = zip(*submissions_list) if submissions_list else ([], [], [])
     sentiment_df = analyze_sentiment(list(texts))
 
-    # Add new submussions to database
+    # Add new submissions to database
     records = sentiment_df.to_dict('records')
     submissions_db = []
-    for rec, txt, dt in zip(records, texts, dates):
+    for rec, txt, dt, type in zip(records, texts, dates, types):
         submissions_db.append(
             Post(
                 ticker=ticker,
                 text=txt, 
+                text_hash=Post.create_hash(txt),
                 site=site,
                 label=rec['label'],
                 score=rec['score'],
-                post_date=dt
+                post_date=dt,
+                type=type
             )
         )
 
-    if submissions_db:
-        db.session.bulk_save_objects(submissions_db)
-        db.session.commit()    
-
-# ADD SEARCHING FOR TICKER/COMPANY WITHIN SUBMISSION DESCRIPTION
+    statement = insert(Post).values([
+        {
+            'ticker': p.ticker,
+            'text': p.text,
+            'text_hash': p.text_hash,
+            'type': p.type,
+            'site': p.site,
+            'label': p.label,
+            'score': p.score,
+            'post_date': p.post_date
+        }
+        for p in submissions_db
+    ])
+    statement = statement.on_conflict_do_nothing(index_elements=['ticker', 'text_hash'])
+    db.session.execute(statement)
+    db.session.commit()
