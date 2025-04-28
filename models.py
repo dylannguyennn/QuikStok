@@ -1,6 +1,6 @@
 from datetime import datetime
 from app import db
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import UniqueConstraint, DateTime, Column, func
 import hashlib
 import unicodedata
 import re
@@ -20,7 +20,7 @@ class Post(db.Model):
     label = db.Column(db.String(20), nullable=True)    # Sentiment label
     score = db.Column(db.Float, nullable=True)         # Sentiment score
     post_date = db.Column(db.DateTime, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.now)
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.now())
 
     # Text normalization -> Hash -> Avoid duplicate posts
     @staticmethod

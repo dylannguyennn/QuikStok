@@ -104,20 +104,21 @@ async def search_ticker_reddit(ticker, site='reddit'):
                 type=type
             )
         )
-
-    statement = insert(Post).values([
-        {
-            'ticker': p.ticker,
-            'text': p.text,
-            'text_hash': p.text_hash,
-            'type': p.type,
-            'site': p.site,
-            'label': p.label,
-            'score': p.score,
-            'post_date': p.post_date
-        }
-        for p in submissions_db
-    ])
-    statement = statement.on_conflict_do_nothing(index_elements=['ticker', 'text_hash'])
-    db.session.execute(statement)
-    db.session.commit()
+    
+    if submissions_db:
+        statement = insert(Post).values([
+            {
+                'ticker': p.ticker,
+                'text': p.text,
+                'text_hash': p.text_hash,
+                'type': p.type,
+                'site': p.site,
+                'label': p.label,
+                'score': p.score,
+                'post_date': p.post_date
+            }
+            for p in submissions_db
+        ])
+        statement = statement.on_conflict_do_nothing(index_elements=['ticker', 'text_hash'])
+        db.session.execute(statement)
+        db.session.commit()

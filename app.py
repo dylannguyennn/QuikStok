@@ -18,9 +18,9 @@ from posts import search_ticker_reddit
 from models import Post
 
 def score_label(label: str, score: float) -> float:
-    if label == "POSITIVE":
+    if label == "LABEL_2": # Positive
         return score
-    elif label == "NEGATIVE":
+    elif label == "LABEL_0": # Negative
         return -score
     else:
         return 0.0
@@ -53,7 +53,8 @@ def analyze_stock(ticker):
             'score': post.score
         })
 
-    scores = [score_label(r["label"], r["score"]) for r in sentiment_data]
+    scores = [score_label(r['label'], r['score']) for r in sentiment_data]
+    print(scores)
     if scores:
         mean_sentiment = sum(scores) / len(scores)
     else:
