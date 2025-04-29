@@ -20,6 +20,6 @@ def analyze_sentiment(submissions_list: list) -> pd.DataFrame:
         })
 
     df = pd.DataFrame(records)
-    df.to_csv("sentiment_analysis.csv", index=False)
+    # df.to_csv("sentiment_analysis.csv", index=False)
     return df
 
