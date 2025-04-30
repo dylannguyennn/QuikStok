@@ -2,16 +2,12 @@ import os
 import praw
 import asyncpraw
 import asyncio
-import yfinance as yf
-import pandas as pd
 from analysis import analyze_sentiment
 from datetime import datetime, timedelta
 from app import db
 from models import Post
 from sqlalchemy import func
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.dialects.postgresql import insert
-
 
 PRAW_CLIENT_ID = os.getenv("PRAW_CLIENT_ID")
 PRAW_CLIENT_SECRET = os.getenv("PRAW_CLIENT_SECRET")
@@ -20,6 +16,7 @@ REDDIT_USERNAME = os.getenv("REDDIT_USERNAME")
 REDDIT_PASSWORD = os.getenv("REDDIT_PASSWORD")
 
 async def fetch_submissions(reddit, subreddit_names, submissions_list, ticker, company, last_post_date):
+
     # Search for submissions containing ticker or company name
     # Stop searching if post_date is older than last_post_date
     print("Beginning submission processing...")
@@ -36,6 +33,8 @@ async def fetch_submissions(reddit, subreddit_names, submissions_list, ticker, c
             submissions_list.append([submission.selftext, post_date, "submission_selftext"])
     print("Submission processing finished.")
 
+
+
 async def fetch_comments(reddit, subreddit_names, submissions_list, ticker, company, last_post_date):
     print("Beginning comment processing...")
     subreddit = await reddit.subreddit('+'.join(subreddit_names))
@@ -49,14 +48,8 @@ async def fetch_comments(reddit, subreddit_names, submissions_list, ticker, comp
     print("Finished comment processing...")
 
 
-def process_ticker(ticker):
-    to_shorten = ["Corporation", "Inc.", "Inc", "Corp", "Co", "Co.", "Corp.", "International", "Incorporated", "Company"]
-    company = yf.Ticker(ticker).info["shortName"]
-    company = company.replace(".", "").replace(",", "").split(" ")
-    company = " ".join([i for i in company if i not in to_shorten])
-    return company
 
-async def search_ticker_reddit(ticker, site='reddit'):
+async def search_ticker_reddit(ticker, company, site='reddit'):
     reddit = asyncpraw.Reddit(
         client_id=PRAW_CLIENT_ID,
         client_secret=PRAW_CLIENT_SECRET,
@@ -77,7 +70,6 @@ async def search_ticker_reddit(ticker, site='reddit'):
     # List of subreddits to search for submissions in
     subreddit_names = ["Investing", "Stocks", "StockMarket", "WallStreetBets", "ThetaGang", "Dividends", "Options"]
     submissions_list = []
-    company = process_ticker(ticker)
 
     await asyncio.gather(
         fetch_submissions(reddit, subreddit_names, submissions_list, ticker, company, last_post_date),

@@ -13,17 +13,30 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
 # To avoid circular imports
 from posts import search_ticker_reddit 
 from models import Post
 
 def score_label(label: str, score: float) -> float:
-    if label == "LABEL_2": # Positive
+    if label == "LABEL_0": # Positive
         return score
-    elif label == "LABEL_0": # Negative
+    elif label == "LABEL_1": # Negative
         return -score
     else:
         return 0.0
+    
+def process_ticker(ticker):
+    ##### TEMPORARY B/C OF YFINANCE RATE LIMITING
+    if ticker == "NVDA":
+        return "Nvidia"
+    ##### TEMPORARY B/C OF YFINANCE RATE LIMITING
+
+    to_shorten = ["Corporation", "Inc.", "Inc", "Corp", "Co", "Co.", "Corp.", "International", "Incorporated", "Company"]
+    company = yf.Ticker(ticker).info["shortName"]
+    company = company.replace(".", "").replace(",", "").split(" ")
+    company = " ".join([i for i in company if i not in to_shorten])
+    return company
     
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -31,11 +44,13 @@ def home():
     
 @app.route('/analyze_stock/<ticker>', methods=['GET'])
 def analyze_stock(ticker):
+
     # Search for new submissions containing ticker/company name 
     # and add them to the database if they are newer than most recent record
     ticker = ticker.strip().upper() 
-    # search_ticker_reddit(ticker)
-    asyncio.run(search_ticker_reddit(ticker))
+    company = process_ticker(ticker)
+    
+    asyncio.run(search_ticker_reddit(ticker, company))
 
     # Retrieve all posts from DB within timeframe
     timeframe = datetime.now() - timedelta(days=30)

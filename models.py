@@ -1,4 +1,3 @@
-from datetime import datetime
 from app import db
 from sqlalchemy import UniqueConstraint, DateTime, Column, func
 import hashlib
