@@ -21,9 +21,9 @@ from posts import search_ticker_reddit
 from models import Post
 
 def score_label(label: str, score: float) -> float:
-    if label == "LABEL_0": # Positive
+    if label == "positive": # Positive
         return score
-    elif label == "LABEL_1": # Negative
+    elif label == "negative": # Negative
         return -score
     else:
         return 0.0
