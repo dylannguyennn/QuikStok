@@ -2,10 +2,12 @@ from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime, timedelta 
+from dotenv import load_dotenv
 import yfinance as yf
 import os
 import asyncio
 
+load_dotenv()
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
