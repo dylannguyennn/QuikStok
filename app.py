@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime, timedelta 
 from dotenv import load_dotenv
+from openrouter import ai_analysis
 import yfinance as yf
 import os
 import asyncio
@@ -92,12 +93,14 @@ def analyze_stock(ticker):
 
     print(mean_sentiment)
     print(bucket)
+    ai_response = ai_analysis(index_0_100, bucket, ticker)
 
     return render_template('analysis.html',
         symbol = ticker ,
         sentiment_rows = sentiment_data,
         sentiment_index = index_0_100,
-        sentiment_label = bucket               
+        sentiment_label = bucket,
+        ai_response = ai_response               
     )
 
 

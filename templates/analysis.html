@@ -12,6 +12,16 @@
 <style>
     .test {
         color: white;
+        display: flex;
+        justify-content: center;
+        margin-top: 32px;
+        margin-left: 32px;
+        margin-right: 32px;
+    }
+    .test2 {
+        color: white;
+        display: flex;
+        justify-content: center;
     }
 </style>
 <body style="background-color: #212121;">
@@ -20,16 +30,18 @@
     <span class="test" style="font-weight:bold;">{{ sentiment_index }} / 100</span>
     <div class="progress-container">
         <div
-          class="progress-bar {{ sentiment_label|lower|replace(' ', '-') }}"
-          style="width: {{ sentiment_index }}%;"
-          role="progressbar"
-          aria-valuenow="{{ sentiment_index }}"
-          aria-valuemin="0"
-          aria-valuemax="100"
+            class="progress-bar {{ sentiment_label|lower|replace(' ', '-') }}"
+            style="width: {{ sentiment_index }}%;"
+            role="progressbar"
+            aria-valuenow="{{ sentiment_index }}"
+            aria-valuemin="0"
+            aria-valuemax="100"
         ></div>
     </div>
+    <span class="test2" style="font-weight:bold;">{{ sentiment_label }}</span>
+    <p class="test">{{ ai_response }} </p>
 
-    <h1 class="test">{{ symbol }} Posts Retrieved:</h1>
+    <!-- <h1 class="test">{{ symbol }} Posts Retrieved:</h1>
     <table class="test">
         <thead>
             <tr>
@@ -49,11 +61,11 @@
                 </tr>
             {% else %}
                 <tr>
-                  <td colspan="4">No posts to display.</td>
+                    <td colspan="4">No posts to display.</td>
                 </tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table> -->
     
 </body>
 </html>
